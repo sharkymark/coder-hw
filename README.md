@@ -18,7 +18,7 @@ Credential is a session token. It is read as environment variable along with the
 # set environment variables
 export CODER_URL=""
 export CODER_SESSION_TOKEN=""
-export CODER_API_ROUTE=""
+export CODER_API_ROUTE="api/v2"
 export CODER_ORG_ID=""
 ```
 
@@ -26,6 +26,9 @@ Create a Coder Session Token either:
 
 1. `http://your-access-url/cli-auth` from a browser
 1. In the Coder UI or with Coder CLI, create a token `coder token create`
+
+> If using the dev container, you cannot use localhost but instead the tunnel proxy URL or our host machine URL
+> where Coder is deployed e.g., https://*************.pit-1.try.coder.app
 
 Obtain the Coder deployment's Organization Id with `http://your-access-url/api/v2/users/me` from a browser
 
