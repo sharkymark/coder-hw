@@ -28,7 +28,7 @@ Create a Coder Session Token either:
 1. In the Coder UI or with Coder CLI, create a token `coder token create`
 
 > If using the dev container, you cannot use localhost but instead the tunnel proxy URL or our host machine URL
-> where Coder is deployed e.g., https://*************.pit-1.try.coder.app
+> where Coder is deployed e.g., `https://*************.pit-1.try.coder.app`
 
 Obtain the Coder deployment's Organization Id with `http://your-access-url/api/v2/users/me` from a browser
 
