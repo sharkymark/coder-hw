@@ -13,6 +13,38 @@ def mask_token(token):
     mask_length = len(token) - 8  # Calculate mask length based on desired reveal
     return f"{token[:4]}{'*' * mask_length}{token[-4:]}"
 
+def format_roles(roles):
+  """
+  This function takes a list of roles and returns a comma-separated string
+  with proper formatting.
+  """
+  if not roles:
+    return "None"
+  role_names = [role.get('name') for role in roles]
+  return ", ".join(role_names)
+
+def format_org_ids(org_ids):
+  """
+  This function takes a list of organization IDs and returns a comma-separated string
+  with proper formatting.
+  """
+  if not org_ids:
+    return "None"
+  return ", ".join(org_ids)
+
+def format_user_info(user):
+  """
+  This function formats user information for printing, without date formatting.
+  """
+  username = user.get('username')
+  email = user.get('email')
+  roles_formatted = format_roles(user.get('roles', []))
+  org_ids_formatted = format_org_ids(user.get('organization_ids', []))
+  last_seen = user.get('last_seen_at')
+  created_at = user.get('created_at')
+
+  return f"Username: {username}\nEmail: {email}\nRoles: {roles_formatted}\nOrganization Id(s): {org_ids_formatted}\nLast Seen: {last_seen}\nCreated At: {created_at}"
+
 
 def process_response(response, action):
   """
@@ -27,30 +59,38 @@ def process_response(response, action):
 
         # Extract specific data points based on action
       if action.lower() == 'ui':
-        username = data.get('username')
-        email = data.get('email')
-        organizations = data.get('organization_ids', {})
-        last_seen = data.get('last_seen_at')
-        created_at = data.get('created_at')
-        roles = data.get('roles', {})
-        role_names = [role.get('name') for role in roles] if roles else []
-        
-        print(f"\nUsername: {username}")
-        print(f"Email: {email}")
-        print(f"Organization IDs: {', '.join(organizations) if organizations else 'None'}")
-        print(f"Last Seen: {last_seen} | Created At: {created_at}")        
-        print(f"Roles: {', '.join(role_names)}")  # Print comma-separated role names
+          user_data = response.json()
+          formatted_user_info = format_user_info(user_data)
+          print(formatted_user_info)
 
+
+      elif action.lower() == 'lu':
+        user_data = response.json()
+        user_count = user_data.get('count')
+        users = user_data.get('users', [])
+        formatted_users = [format_user_info(user) for user in users]
+        print(f"Total Users: {user_count}\n")
+        for user_info in formatted_users:
+          print(user_info)  # Print each formatted user information
+          print("\n")
+          
       elif action.lower() == 'lt':
         # Iterate through templates and extract desired data
         for template in data:
-          name = template.get('name')
+          name = template.get('display_name') + " (" + template.get('name') + ")"
           description = template.get('description')
           created_at = template.get('created_at')
+          updated_at = template.get('updated_at')
+          active_users = template.get('active_user_count')
+          created_by = template.get('created_by_name')
+          deprecated = template.get('deprecated')
           # ... Extract other data points
-          print(f"\nName: {name}")
+          print(f"\nDisplay(name): {name}")
           print(f"Description: {description}")
-          print(f"Created At: {created_at}")
+          print(f"Created by: {created_by} at: {created_at} updated at: {updated_at}")
+          if deprecated:
+            print(f"**deprecated**")
+          print(f"Active users: {active_users}")
 
 
       # Use pretty print to display the JSON data
@@ -75,6 +115,7 @@ def main():
 
             action = input("""Enter:
             'lt' to list templates,
+            'lu' to list users,
             'ui' to list authenticated user info
             'ev' to list environment variables
             'q' to exit:
@@ -103,7 +144,23 @@ def main():
 
                 # Process the response
                 if response.status_code == 200:
-                    print(f"\nAuthenticated user info:")
+                    print(f"\nAuthenticated user info:\n")
+                    process_response(response, action)
+                else:
+                    print("Error:", response.status_code)
+                    print("Error:", response.text)
+
+            elif action.lower() == 'lu':
+
+                # Construct the API endpoint URL
+                api_url = f"{coder_url}/{coder_api_route}/users"
+
+                # Send the GET request
+                response = requests.get(api_url, headers=headers)
+
+                # Process the response
+                if response.status_code == 200:
+                    print(f"\nUsers:\n")
                     process_response(response, action)
                 else:
                     print("Error:", response.status_code)
