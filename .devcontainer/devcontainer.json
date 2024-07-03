@@ -1,0 +1,28 @@
+{
+    "name": "Coder Simple CLI",
+    "build": {
+      "dockerfile": "../Dockerfile",
+      "context": ".."
+    },
+    "containerEnv": {
+      "CODER_URL": "${localEnv:CODER_URL}",
+      "CODER_SESSION_TOKEN": "${localEnv:CODER_SESSION_TOKEN}",
+      "CODER_API_ROUTE": "${localEnv:CODER_API_ROUTE}",
+      "CODER_ORG_ID": "${localEnv:CODER_ORG_ID}"
+    },
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "ms-python.python",
+          "GitHub.copilot",
+          "ms-python.pylance"
+        ],
+        "settings": { 
+          "terminal.integrated.shell.linux": "/bin/bash"
+        }  
+      }
+    },
+    "postCreateCommand": "python3 coder-cli.py"
+    }
+
+  
