@@ -92,6 +92,51 @@ def process_response(response, action):
             print(f"**deprecated**")
           print(f"Active users: {active_users}")
 
+      elif action.lower() == 'lw':
+        workspace_data = response.json()
+        workspace_count = workspace_data.get('count')
+        workspaces = workspace_data.get('workspaces', [])
+        print(f"Total workspaces: {workspace_count}\n")
+        for workspace in workspaces:
+          name = workspace.get('name')
+          template_name = workspace.get('template_name')
+          template_version = workspace.get('latest_build', {}).get('template_version_name')
+          health = workspace.get('health', {}).get('healthy')
+          status = workspace.get('latest_build', {}).get('status')
+          outdated = workspace.get('outdated', False)
+          last_built = workspace.get('latest_build', {}).get('created_at')
+          owner = workspace.get('latest_build', {}).get('workspace_owner_name')
+          print(f"  Name: {name}")
+          print(f"  Owner: {owner}")
+          print(f"  Template (version): {template_name} ({template_version})")
+          print(f"  Status: {status}") 
+          print(f"  Last built: {last_built}") 
+          print(f"  Healthy: {health}")
+
+          if outdated:
+              print(f"  Deprecated")  # Print 'deprecated' only if 'outdated' is True
+
+
+          latest_build = workspace.get('latest_build')
+          if latest_build:
+            resources = latest_build.get('resources', [])
+            if resources:
+              print("  Apps:")
+              for resource in resources:
+                agents = resource.get('agents', [])
+                for agent in agents:
+                  apps = agent.get('apps', [])
+                  for app in apps:
+                    display_name = app.get('display_name')
+                    if display_name:
+                      print(f"    - {display_name}")                  
+                  display_apps = agent.get('display_apps')
+                  if display_apps:
+                    for app in display_apps:
+                      print(f"    - {app}")
+
+          print()  # Add a new line after each workspace information
+
 
       # Use pretty print to display the JSON data
       #print(json.dumps(data, indent=4))
@@ -115,6 +160,7 @@ def main():
 
             action = input("""Enter:
             'lt' to list templates,
+            'lw' to list workspaces,
             'lu' to list users,
             'ui' to list authenticated user info
             'ev' to list environment variables
@@ -161,6 +207,22 @@ def main():
                 # Process the response
                 if response.status_code == 200:
                     print(f"\nUsers:\n")
+                    process_response(response, action)
+                else:
+                    print("Error:", response.status_code)
+                    print("Error:", response.text)
+
+            elif action.lower() == 'lw':
+
+                # Construct the API endpoint URL
+                api_url = f"{coder_url}/{coder_api_route}/workspaces"
+
+                # Send the GET request
+                response = requests.get(api_url, headers=headers)
+
+                # Process the response
+                if response.status_code == 200:
+                    print(f"\nWorkspaces:\n")
                     process_response(response, action)
                 else:
                     print("Error:", response.status_code)
