@@ -46,6 +46,29 @@ def format_user_info(user):
   return f"Username: {username}\nEmail: {email}\nRoles: {roles_formatted}\nOrganization Id(s): {org_ids_formatted}\nLast Seen: {last_seen}\nCreated At: {created_at}"
 
 
+def format_build_info(build):
+  """
+  This function formats build information for printing
+  """
+
+  release = build.get('version')
+
+  # Split the text at '+'
+  parts = release.split('+')
+
+  # Get the first part (everything before '+') and remove leading 'v' if it exists
+  release = parts[0][1:]  # Assuming 'v' is always the first character
+  upgrade_message = build.get('upgrade_message')
+  if not upgrade_message:
+    upgrade_message = "On latest release of Coder"
+  dashboard_url = build.get('dashboard_url')
+  telemetry = build.get('telemetry')
+  deployment_id = build.get('deployment_id')
+  workspace_proxy = build.get('workspace_proxy')
+
+  return f"\nRelease: {release}\nUpgrade available? {upgrade_message}\nDashboard URL: {dashboard_url}\nTelemetry enabled? {telemetry}\nDeployment Id: {deployment_id}\nAdditional Workspace Proxies? {workspace_proxy}"
+
+
 def process_response(response, action):
   """
   This function handles successful responses by parsing JSON and printing data,
@@ -62,6 +85,11 @@ def process_response(response, action):
           user_data = response.json()
           formatted_user_info = format_user_info(user_data)
           print(formatted_user_info)
+
+      if action.lower() == 'st':
+          build_data = response.json()
+          formatted_build_info = format_build_info(build_data)
+          print(formatted_build_info)
 
 
       elif action.lower() == 'lu':
@@ -164,6 +192,7 @@ def main():
             'lu' to list users,
             'ui' to list authenticated user info
             'ev' to list environment variables
+            'st' to list deployment stats & release
             'q' to exit:
             
             """)
@@ -239,6 +268,21 @@ def main():
                 # Process the response
                 if response.status_code == 200:
                     print(f"\nTemplates:")
+                    process_response(response, action)
+                else:
+                    print("Error:", response.status_code)
+                    print("Error:", response.text)
+            elif action.lower() == 'st':
+
+                # Construct the API endpoint URL
+                api_url = f"{coder_url}/{coder_api_route}/buildinfo"
+
+                # Send the GET request
+                response = requests.get(api_url, headers=headers)
+
+                # Process the response
+                if response.status_code == 200:
+                    print(f"\nDeployment Information:")
                     process_response(response, action)
                 else:
                     print("Error:", response.status_code)
