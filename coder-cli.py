@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import requests
 
@@ -7,6 +8,31 @@ coder_session_token = os.environ['CODER_SESSION_TOKEN']
 coder_api_route = os.environ['CODER_API_ROUTE']
 coder_org_id = os.environ['CODER_ORG_ID']
 headers = {"Coder-Session-Token": coder_session_token}
+
+def print_environment_variables():
+  print("\nListing environment variables...\n\n")
+  print(f"CODER_URL: {coder_url}")
+  masked_token = mask_token(coder_session_token)
+  print(f"CODER_SESSION_TOKEN: {masked_token}")
+  print(f"CODER_API_ROUTE: {coder_api_route}")
+  print(f"CODER_ORG_ID: {coder_org_id}")
+  print("\n")
+
+def check_environment_variables():
+  """
+  This function checks if required environment variables are set and warns the user if not.
+  """
+  required_vars = ["CODER_URL", "CODER_SESSION_TOKEN", "CODER_API_ROUTE", "CODER_ORG_ID"]
+  missing_vars = [var for var in required_vars if not os.getenv(var)]
+  if missing_vars:
+    error_message = "\nERROR: The following environment variables are not set:\n\n"
+    for var in missing_vars:
+      error_message += f"  - {var}\n"  # Indented with two spaces for each missing variable
+    error_message += "\nPlease set these environment variables before running this program.\n"
+    print(error_message)
+    print_environment_variables()
+    sys.exit(1)
+
 
 def mask_token(token):
     """Masks the middle characters of a token, revealing first 4 and last 4."""
@@ -67,7 +93,30 @@ def format_build_info(build):
   workspace_proxy = build.get('workspace_proxy')
 
   return f"\nRelease: {release}\nUpgrade available? {upgrade_message}\nDashboard URL: {dashboard_url}\nTelemetry enabled? {telemetry}\nDeployment Id: {deployment_id}\nAdditional Workspace Proxies? {workspace_proxy}"
+  
+def check_api_connection():
 
+  print("\nChecking API connection...\n")
+  
+  # get release
+  api_url = f"{coder_url}/{coder_api_route}/buildinfo"
+  response = requests.get(api_url, headers=headers)
+  process_response(response, "re")
+
+  # get user count
+  api_url = f"{coder_url}/{coder_api_route}/users"
+  response = requests.get(api_url, headers=headers)
+  process_response(response, "uc")
+
+  # get template count
+  api_url = f"{coder_url}/{coder_api_route}/organizations/{coder_org_id}/templates"
+  response = requests.get(api_url, headers=headers)
+  process_response(response, "tc")
+
+  # get workspace count
+  api_url = f"{coder_url}/{coder_api_route}/workspaces"
+  response = requests.get(api_url, headers=headers)
+  process_response(response, "wc")
 
 def process_response(response, action):
   """
@@ -80,8 +129,31 @@ def process_response(response, action):
       # Parse the JSON response (assuming successful response)
       data = response.json()
 
-        # Extract specific data points based on action
-      if action.lower() == 'ui':
+      # Extract specific data points based on action
+
+      if action.lower() == 'uc':
+          user_data = response.json()
+          user_count = user_data.get('count')
+          print(f"# of users: {user_count}")
+        
+      elif action.lower() == 're':
+          build = response.json()
+          release = build.get('version')
+          parts = release.split('+')
+          release = parts[0][1:] 
+          print(f"Coder release: {release}")
+
+      elif action.lower() == 'tc':
+          template_data = response.json()
+          template_count = len(template_data)
+          print(f"# of templates: {template_count}")
+
+      elif action.lower() == 'wc':
+          workspace_data = response.json()
+          workspace_count = workspace_data.get('count')
+          print(f"# of workspace: {workspace_count}")          
+
+      elif action.lower() == 'ui':
           user_data = response.json()
           formatted_user_info = format_user_info(user_data)
           print(formatted_user_info)
@@ -177,6 +249,9 @@ def process_response(response, action):
 
 def main():
 
+    check_environment_variables()
+    check_api_connection()
+
     while True:
         try:
 
@@ -202,12 +277,7 @@ def main():
                 break
 
             elif action.lower() == 'ev':
-                print("\n\nListing environment variables...\n\n")
-                print(f"CODER_URL: {coder_url}")
-                masked_token = mask_token(coder_session_token)
-                print(f"CODER_SESSION_TOKEN: {masked_token}")
-                print(f"CODER_API_ROUTE: {coder_api_route}")
-                print(f"CODER_ORG_ID: {coder_org_id}")
+                print_environment_variables()
 
             elif action.lower() == 'ui':
 

@@ -50,7 +50,10 @@ The app runs as a while loop prompting the user for actions like:
 1. list all users
 1. show authenticated user information
 1. list environment variable values with session token partially masked
+1. list deployment build information
 1. quit the app
+
+When the app starts, it checks that environment variables have been entered and does test API calls to retrieve Coder release, # of users, templates and workspaces.
 
 ## Dev Container
 
