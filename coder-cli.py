@@ -101,22 +101,39 @@ def check_api_connection():
   # get release
   api_url = f"{coder_url}/{coder_api_route}/buildinfo"
   response = requests.get(api_url, headers=headers)
-  process_response(response, "re")
+  if response.status_code == 200:
+    process_response(response, "re")
+  else:
+    print("Error:", response.status_code)
+    print("Error:", response.text)
+
 
   # get user count
   api_url = f"{coder_url}/{coder_api_route}/users"
   response = requests.get(api_url, headers=headers)
-  process_response(response, "uc")
+  if response.status_code == 200:
+    process_response(response, "uc")
+  else:
+    print("Error:", response.status_code)
+    print("Error:", response.text)  
 
   # get template count
   api_url = f"{coder_url}/{coder_api_route}/organizations/{coder_org_id}/templates"
   response = requests.get(api_url, headers=headers)
-  process_response(response, "tc")
+  if response.status_code == 200:
+    process_response(response, "tc")
+  else:
+    print("Error:", response.status_code)
+    print("Error:", response.text)  
 
   # get workspace count
   api_url = f"{coder_url}/{coder_api_route}/workspaces"
   response = requests.get(api_url, headers=headers)
-  process_response(response, "wc")
+  if response.status_code == 200:
+    process_response(response, "wc")
+  else:
+    print("Error:", response.status_code)
+    print("Error:", response.text)  
 
 def process_response(response, action):
   """
