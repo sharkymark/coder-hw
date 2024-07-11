@@ -151,7 +151,7 @@ def process_response(response, action):
       elif action.lower() == 'wc':
           workspace_data = response.json()
           workspace_count = workspace_data.get('count')
-          print(f"# of workspace: {workspace_count}")          
+          print(f"# of workspaces: {workspace_count}")          
 
       elif action.lower() == 'ui':
           user_data = response.json()
