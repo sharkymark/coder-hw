@@ -158,7 +158,10 @@ def process_response(response, action):
           release = build.get('version')
           parts = release.split('+')
           release = parts[0][1:] 
-          print(f"Coder release: {release}")
+          upgrade_message = build.get('upgrade_message')
+          if not upgrade_message:
+            upgrade_message = "latest"
+          print(f"Coder release: {release} ({upgrade_message})")
 
       elif action.lower() == 'tc':
           template_data = response.json()
@@ -193,6 +196,10 @@ def process_response(response, action):
           
       elif action.lower() == 'lt':
         # Iterate through templates and extract desired data
+        template_data = response.json()
+        template_count = len(template_data)
+        print(f"\n# of templates: {template_count}\n")
+
         for template in data:
           name = template.get('display_name') + " (" + template.get('name') + ")"
           description = template.get('description')
@@ -201,6 +208,7 @@ def process_response(response, action):
           active_users = template.get('active_user_count')
           created_by = template.get('created_by_name')
           deprecated = template.get('deprecated')
+
           # ... Extract other data points
           print(f"\nDisplay(name): {name}")
           print(f"Description: {description}")
