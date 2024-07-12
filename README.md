@@ -47,6 +47,7 @@ Alternatively, see the dev container approach below which autostarts the app.
 The app runs as a while loop prompting the user for actions like:
 1. list templates
 1. list workspaces
+1. search workspaces with a filter e.g., `owner:me` or `flask`
 1. list all users
 1. show authenticated user information
 1. list environment variable values with session token partially masked

@@ -287,9 +287,10 @@ def main():
             print("=============================================================\n")
 
             action = input("""Enter:
-            'lt' to list templates,
-            'lw' to list workspaces,
-            'lu' to list users,
+            'lt' to list templates
+            'lw' to list workspaces
+            'sw' to search workspaces
+            'lu' to list users
             'ui' to list authenticated user info
             'ev' to list environment variables
             'st' to list deployment stats & release
@@ -300,6 +301,17 @@ def main():
             if action.lower() == 'q':
                 print("\n\nExiting...\n\n")
                 break
+
+            elif action.lower() == 'sw':
+                query = input("\nEnter search query: ")
+                api_url = f"{coder_url}/{coder_api_route}/workspaces?q={query}"
+                response = requests.get(api_url, headers=headers)
+                if response.status_code == 200:
+                    print(f"\nWorkspaces matching '{query}':\n")
+                    process_response(response, 'lw')  # Reuse the existing 'lw' action for processing the response
+                else:
+                    print("Error:", response.status_code)
+                    print("Error:", response.text)
 
             elif action.lower() == 'ev':
                 print_environment_variables()
