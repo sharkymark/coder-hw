@@ -226,39 +226,76 @@ def process_response(response, action):
           name = workspace.get('name')
           template_name = workspace.get('template_name')
           template_version = workspace.get('latest_build', {}).get('template_version_name')
+          template_version_id = workspace.get('latest_build', {}).get('template_version_id')
           health = workspace.get('health', {}).get('healthy')
           status = workspace.get('latest_build', {}).get('status')
           outdated = workspace.get('outdated', False)
           last_built = workspace.get('latest_build', {}).get('created_at')
           owner = workspace.get('latest_build', {}).get('workspace_owner_name')
+          
+
           print(f"  Name: {name}")
           print(f"  Owner: {owner}")
           print(f"  Template (version): {template_name} ({template_version})")
           print(f"  Status: {status}") 
-          print(f"  Last built: {last_built}") 
-          print(f"  Healthy: {health}")
+          print(f"  Last built: {last_built}")
+          if status == 'running': 
+            print(f"  Healthy: {health}")
 
           if outdated:
               print(f"  Deprecated")  # Print 'deprecated' only if 'outdated' is True
 
 
-          latest_build = workspace.get('latest_build')
-          if latest_build:
-            resources = latest_build.get('resources', [])
-            if resources:
-              print("  Apps:")
+          # Construct the API endpoint URL to get resources since the API does not always 
+          # return resources in the workspace response i.e., when workspace is stopped
+          api_url = f"{coder_url}/{coder_api_route}/templateversions/{template_version_id}/resources"
+
+          # Send the GET request
+          response = requests.get(api_url, headers=headers)
+
+          # Process the response
+          if response.status_code == 200:
+            resources = response.json()
+            
+            if resources:  
+
               for resource in resources:
+                resource_name = resource.get('name')
+                resource_type = resource.get('type')
+                workspace_transition = resource.get('workspace_transition')
+                dailycost = resource.get('daily_cost')
+                if workspace_transition == 'start':
+                  print(f"  Type/Resource: {resource_type}/{resource_name}")
+                  if dailycost > 0:
+                    print(f"  Daily Cost: {dailycost}")                
+                  metadata = resource.get('metadata', [])
+                  if metadata:
+                    print("    Metadata:")
+                    for meta in metadata:
+                      metadata_key = meta.get('key')
+                      metadata_value = meta.get('value')
+                      print(f"      - {metadata_key}: {metadata_value}")
+
                 agents = resource.get('agents', [])
                 for agent in agents:
                   apps = agent.get('apps', [])
-                  for app in apps:
-                    display_name = app.get('display_name')
-                    if display_name:
-                      print(f"    - {display_name}")                  
-                  display_apps = agent.get('display_apps')
-                  if display_apps:
-                    for app in display_apps:
-                      print(f"    - {app}")
+                  if apps:
+                      print("    Apps:")
+                      for app in apps:
+                        display_name = app.get('display_name')
+                        if display_name:
+                          print(f"      - {display_name}")                  
+                      display_apps = agent.get('display_apps')
+                      if display_apps:
+                        for app in display_apps:
+                          print(f"      - {app}")
+
+
+          else:
+              print("Error:", response.status_code)
+              print("Error:", response.text)
+
+
 
           print()  # Add a new line after each workspace information
 
