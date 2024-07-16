@@ -34,6 +34,11 @@ Obtain the Coder deployment's Organization Id with `http://your-access-url/api/v
 
 ## Run the app
 
+### as a binary
+
+Run `./coder-cli` from the `./dist` directory or add the directory to your path and run `coder-cli`
+
+### from source
 `cd` into the repo directory and run the app
 
 ```sh
