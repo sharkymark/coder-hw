@@ -36,7 +36,11 @@ Obtain the Coder deployment's Organization Id with `http://your-access-url/api/v
 
 ### as a binary
 
-Run `./coder-cli` from the `./dist` directory or add the directory to your path and run `coder-cli`
+> Below are build instructions instead of including a large binary and build artifacts in this repo
+
+1. Use a build tool like 'pip3 install pystaller'
+1. 'pyinstaller --onefile --workpath /path/to/build/directory coder-cli.py'
+1. Run `./coder-cli` from the `./dist` directory or add the directory to your path and run `coder-cli`
 
 ### from source
 `cd` into the repo directory and run the app
