@@ -79,21 +79,32 @@ def format_build_info(build):
 
   release = build.get('version')
 
+
   # Split the text at '+'
   parts = release.split('+')
 
   # Get the first part (everything before '+') and remove leading 'v' if it exists
-  release = parts[0][1:]  # Assuming 'v' is always the first character
+  release = parts[0]  # add [1:] if you want to remove 'v'
   upgrade_message = build.get('upgrade_message')
-  if not upgrade_message:
-    upgrade_message = "On latest release of Coder"
+  
   dashboard_url = build.get('dashboard_url')
   telemetry = build.get('telemetry')
   deployment_id = build.get('deployment_id')
   workspace_proxy = build.get('workspace_proxy')
 
-  return f"\nRelease: {release}\nUpgrade available? {upgrade_message}\nDashboard URL: {dashboard_url}\nTelemetry enabled? {telemetry}\nDeployment Id: {deployment_id}\nAdditional Workspace Proxies? {workspace_proxy}"
-  
+  return f"\nDashboard URL: {dashboard_url}\nTelemetry enabled? {telemetry}\nDeployment Id: {deployment_id}\nAdditional Workspace Proxies? {workspace_proxy}\nRelease: {release}"
+
+def check_update():
+
+  api_url = f"{coder_url}/{coder_api_route}/updatecheck"
+  response = requests.get(api_url, headers=headers)
+  if response.status_code == 200:
+    process_response(response, "up")
+  else:
+    print("Error:", response.status_code)
+    print("Error:", response.text)
+
+
 def check_api_connection():
 
   print("\nChecking API connection...\n")
@@ -107,6 +118,8 @@ def check_api_connection():
     print("Error:", response.status_code)
     print("Error:", response.text)
 
+# get update available?
+  check_update()
 
   # get user count
   api_url = f"{coder_url}/{coder_api_route}/users"
@@ -152,16 +165,26 @@ def process_response(response, action):
           user_data = response.json()
           user_count = user_data.get('count')
           print(f"# of users: {user_count}")
-        
+
+      elif action.lower() == 'up':
+          update = response.json()
+          current = update.get('current')
+          version = update.get('version')
+          upgrade_message = "Status: "
+          url = update.get('url')
+          if current:
+            upgrade_message = upgrade_message + "on latest version"
+          else:
+            upgrade_message = upgrade_message + version + " upgrade available at " + url
+          print(f"{upgrade_message}")
+
       elif action.lower() == 're':
           build = response.json()
           release = build.get('version')
           parts = release.split('+')
-          release = parts[0][1:] 
+          release = parts[0] 
           upgrade_message = build.get('upgrade_message')
-          if not upgrade_message:
-            upgrade_message = "latest"
-          print(f"Coder release: {release} ({upgrade_message})")
+          print(f"Coder release: {release}")
 
       elif action.lower() == 'tc':
           template_data = response.json()
@@ -182,6 +205,7 @@ def process_response(response, action):
           build_data = response.json()
           formatted_build_info = format_build_info(build_data)
           print(formatted_build_info)
+          check_update()
 
 
       elif action.lower() == 'lu':
