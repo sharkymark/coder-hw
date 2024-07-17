@@ -149,6 +149,34 @@ def check_api_connection():
     print("Error:", response.status_code)
     print("Error:", response.text)  
 
+def update_workspace_state(transition, chosen_workspace):
+  """
+  This function sends a POST request to the Coder API to start or stop a workspace.
+
+  Args:
+      transition (str): The desired transition state ("start" or "stop").
+
+  Returns:
+      bool: True if the API call was successful, False otherwise.
+  """  
+
+  api_url = f"{coder_url}/{coder_api_route}/workspaces/{chosen_workspace['id']}/builds"
+  headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      "Coder-Session-Token": coder_session_token
+  }
+  data = json.dumps({'transition': transition})
+
+  try:
+      response = requests.post(api_url, headers=headers, data=data)
+      response.raise_for_status()  # Raise an exception for non-200 status codes
+      return True
+  except requests.exceptions.RequestException as e:
+      print(f"Error updating workspace state: {e}")
+      return False
+
+
 def process_response(response, action):
   """
   This function handles successful responses by parsing JSON and printing data,
@@ -247,7 +275,8 @@ def process_response(response, action):
         workspace_count = workspace_data.get('count')
         workspaces = workspace_data.get('workspaces', [])
         print(f"Total workspaces: {workspace_count}\n")
-        for workspace in workspaces:
+        for i, workspace in enumerate(response.json()['workspaces']):
+        #for workspace in workspaces:
           name = workspace.get('name')
           template_name = workspace.get('template_name')
           template_version = workspace.get('latest_build', {}).get('template_version_name')
@@ -259,6 +288,7 @@ def process_response(response, action):
           owner = workspace.get('latest_build', {}).get('workspace_owner_name')
           
 
+          print(f"  Workspace #{i+1}")
           print(f"  Name: {name}")
           print(f"  Owner: {owner}")
           print(f"  Template (version): {template_name} ({template_version})")
@@ -315,6 +345,7 @@ def process_response(response, action):
                         for app in display_apps:
                           print(f"      - {app}")
 
+            print()  # Add a new line after each workspace information
 
           else:
               print("Error:", response.status_code)
@@ -322,7 +353,53 @@ def process_response(response, action):
 
 
 
-          print()  # Add a new line after each workspace information
+        #print("\n\nSelect a workspace by number (or 'q' to quit):")
+        #user_choice = input("> ")
+
+        user_choice = input("\n\nSelect a workspace by number (or 'q' to quit): ")
+
+        if not workspaces:
+            print("\nNo workspaces found.")
+            return  # Exit the function if no workspaces
+
+        while True:
+
+          if user_choice.lower() == 'q':
+              return  # Exit the function if user chooses 'q'
+
+          try:
+              workspace_index = int(user_choice) - 1  # Convert to zero-based index
+              if workspace_index >= 0 and workspace_index < len(workspaces):
+                  # Valid selection, proceed with chosen workspace
+                  chosen_workspace = workspaces[workspace_index]
+                  print(f"\nWorkspace selected:")
+                  print(f"  Name: {chosen_workspace['name']}")
+                  print(f"  Owner: {chosen_workspace['owner_name']}")
+                  print(f"  Template: {chosen_workspace['template_name']} ({chosen_workspace['latest_build']['template_version_name']})")
+                  print(f"  Status: {chosen_workspace.get('latest_build', {}).get('status')}")
+                  print(f"  List Number: {user_choice}")
+                  break  # Exit the loop on valid selection
+              else:
+                  print(f"\nInvalid choice. Please enter a positive number between 1 and {len(workspaces)}. Returning to main menu.")
+                  return
+              
+          except ValueError:
+              print("\nInvalid input. Please enter a number or 'q'.")
+              return
+
+
+        transition = input("\nEnter 'start' to start the workspace or 'stop' to stop it (or 'q' to quit): ")
+        transition = transition.lower()  # Convert input to lowercase for easier comparison
+        if transition in ('start', 'stop'):
+          success = update_workspace_state(transition,chosen_workspace)
+          if success:
+            print(f"\nWorkspace successfully {'started' if transition == 'start' else 'stopped'}.")
+            print(f"  Name: {chosen_workspace['name']}")
+            print(f"  List Number: {user_choice}")
+          else:
+            print("\nError updating workspace state. Please try again.")
+        else:
+          print("\nInvalid choice. Please enter 'start', 'stop'. Returning to main menu.")
 
 
       # Use pretty print to display the JSON data
