@@ -427,7 +427,7 @@ def main():
 
             action = input("""Enter:
             'lt' to list templates
-            'lw' to list workspaces
+            'lw' to list, start, stop workspaces
             'sw' to search workspaces
             'lu' to list users
             'ui' to list authenticated user info
