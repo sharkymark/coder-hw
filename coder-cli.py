@@ -113,6 +113,7 @@ def check_api_connection():
   api_url = f"{coder_url}/{coder_api_route}/buildinfo"
   response = requests.get(api_url, headers=headers)
   if response.status_code == 200:
+    #print(response.text)
     process_response(response, "re")
   else:
     print("Error:", response.status_code)
