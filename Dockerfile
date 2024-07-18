@@ -11,5 +11,5 @@ COPY . /app
 RUN apt-get update && apt-get install -y procps ssh curl git net-tools htop
 
 # Install pip dependencies
-RUN pip install --no-cache-dir --upgrade pip && pip install requests
+RUN pip install --no-cache-dir --upgrade pip && pip install requests 'lunar-interceptor==0.4.*'
 

@@ -8,7 +8,8 @@
       "CODER_URL": "${localEnv:CODER_URL}",
       "CODER_SESSION_TOKEN": "${localEnv:CODER_SESSION_TOKEN}",
       "CODER_API_ROUTE": "${localEnv:CODER_API_ROUTE}",
-      "CODER_ORG_ID": "${localEnv:CODER_ORG_ID}"
+      "CODER_ORG_ID": "${localEnv:CODER_ORG_ID}",
+      "LUNAR_PROXY_HOST": "${localEnv:LUNAR_PROXY_HOST}",
     },
     "customizations": {
       "vscode": {

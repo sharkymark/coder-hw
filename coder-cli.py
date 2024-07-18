@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import requests
+import lunar_interceptor
 
 coder_url = os.environ['CODER_URL']
 coder_session_token = os.environ['CODER_SESSION_TOKEN']
