@@ -388,9 +388,11 @@ def process_response(response, action):
               return
 
 
-        transition = input("\nEnter 'start' to start the workspace or 'stop' to stop it (or 'q' to quit): ")
-        transition = transition.lower()  # Convert input to lowercase for easier comparison
-        if transition in ('start', 'stop'):
+        valid_choices = {"1": "start", "2": "stop"}  # Map number to action
+        transition_input = input("\nEnter 1 to start the workspace, 2 to stop it (or 'q' to quit): ")
+
+        if transition_input in valid_choices:
+          transition = valid_choices[transition_input]
           success = update_workspace_state(transition,chosen_workspace)
           if success:
             print(f"\nWorkspace successfully {'started' if transition == 'start' else 'stopped'}.")
@@ -399,7 +401,7 @@ def process_response(response, action):
           else:
             print("\nError updating workspace state. Please try again.")
         else:
-          print("\nInvalid choice. Please enter 'start', 'stop'. Returning to main menu.")
+          print("\nInvalid choice. Please enter 1, 2, or 'q'. Returning to main menu.")
 
 
       # Use pretty print to display the JSON data
