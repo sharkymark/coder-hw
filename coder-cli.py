@@ -8,6 +8,7 @@ coder_session_token = os.environ['CODER_SESSION_TOKEN']
 coder_api_route = os.environ['CODER_API_ROUTE']
 coder_org_id = os.environ['CODER_ORG_ID']
 headers = {"Coder-Session-Token": coder_session_token}
+verbose = 0
 
 def print_environment_variables():
   print("\nListing environment variables...\n\n")
@@ -123,6 +124,115 @@ def get_ports(ws_id):
     print("Error:", response.status_code)
     print("Error:", response.text)
 
+def extract_ipv4(address_string):
+  """
+  This function extracts the IP address from a string and returns it.
+  """
+  # Split the string by :
+  parts = address_string.split(":")
+  # Get the first part
+  ip_address = parts[0]
+  return ip_address
+
+import re
+
+def extract_ipv6(address_string):
+
+
+  match = re.search(r"\[(.*)\]", address_string)
+  if match:
+    return match.group(1)
+  else:
+    return None
+
+
+def count_regions(data):
+
+  regions = data.get("derp", {}).get("regions", {})
+  return len(regions)
+
+
+def count_provisioners(data):
+  provisioner_daemons = data.get("provisioner_daemons", {}).get("items", [])
+  total_provisioners = 0
+
+  for daemon in provisioner_daemons:
+    provisioners = daemon.get("provisioner_daemon", {}).get("provisioners", [])
+    total_provisioners += len(provisioners)
+
+  return total_provisioners
+
+
+
+
+def get_health(verbose):
+
+  #print(f"verbose: {verbose}")
+
+  api_url = f"{coder_url}/{coder_api_route}/debug/health"
+  response = requests.get(api_url, headers=headers)
+  if response.status_code == 200:
+    
+    health = response.json()
+    deployment_health = health.get('healthy')
+    derp_health = health.get('derp',{}).get('healthy')
+    number_of_regions = count_regions(health)
+    udp = health.get('derp',{}).get('netcheck',{}).get('UDP')
+    preferred_derp = health.get('derp',{}).get('netcheck',{}).get('PreferredDERP')
+    ip4 = extract_ipv4(health.get('derp',{}).get('netcheck',{}).get('GlobalV4'))
+    ip6 = extract_ipv6(health.get('derp',{}).get('netcheck',{}).get('GlobalV6'))
+    access_url = health.get('access_url',{}).get('access_url')
+    access_url_healthy = health.get('access_url',{}).get('healthy')
+    access_url_reachable = health.get('access_url',{}).get('reachable')
+    access_url_status_code = health.get('access_url',{}).get('status_code')
+    websocket_healthy = health.get('websocket',{}).get('healthy')
+    db_healthy = health.get('database',{}).get('healthy')
+    db_latency = health.get('database',{}).get('latency')
+    wsp_healthy = health.get('workspace_proxy',{}).get('healthy')
+    total_provisioners = count_provisioners(health)
+  
+
+    if verbose == 0:
+      print(f"Deployment healthy: {deployment_health}")
+  
+
+    if verbose != 0:
+      while True:
+        try:
+          verbose = int(input("\nEnter health verbosity level (1 for key deployment data points, 2 for full output): "))
+          if verbose in [1, 2]:
+            break
+          else:
+            print("Incorrect value. Please enter 1 or 2.")
+        except ValueError:
+          print("Invalid input. Please enter a number.")
+
+      if verbose == 1:
+        print(f"\nDeployment healthy: {deployment_health}")
+        print(f"Database:")
+        print(f"  Healthy: {db_healthy}")
+        print(f"  Latency: {db_latency}")
+        print(f"Networking:")
+        print(f"  Designated Encrypted Relay for Packets \"DERP\" servers healthy: {derp_health}")
+        print(f"  # of DERP regions: {number_of_regions}")
+        print(f"  UDP healthy: {udp}")
+        print(f"Websocket healthy: {websocket_healthy}")
+        print(f"  Preferred DERP server: {preferred_derp}")
+        print(f"  IP4: {ip4}")
+        print(f"  IP6: {ip6}")
+        print(f"Access URL: {access_url}")
+        print(f"  Healthy: {access_url_healthy}")
+        print(f"  Reachable: {access_url_reachable}")
+        print(f"  Status code: {access_url_status_code}")
+        print(f"Workspace proxy healthy: {wsp_healthy}")
+        print(f"# of provisioners: {total_provisioners}")
+      elif verbose == 2:
+        print("\n\n")
+        print(json.dumps(health, indent=4))
+      
+  else:
+    print("Error:", response.status_code)
+    print("Error:", response.text)
 
 def check_api_connection():
 
@@ -138,8 +248,10 @@ def check_api_connection():
     print("Error:", response.status_code)
     print("Error:", response.text)
 
-# get update available?
+  # get update available?
   check_update()
+  # get health status
+  get_health(0)
 
   # get user count
   api_url = f"{coder_url}/{coder_api_route}/users"
@@ -218,7 +330,7 @@ def process_response(response, action):
           update = response.json()
           current = update.get('current')
           version = update.get('version')
-          upgrade_message = "Status: "
+          upgrade_message = "Release status: "
           url = update.get('url')
           if current:
             upgrade_message = upgrade_message + "on latest version"
@@ -455,6 +567,7 @@ def main():
             'lu' to list users
             'ui' to list authenticated user info
             'ev' to list environment variables
+            'hc' to show health status
             'st' to list deployment stats & release
             'q' to exit:
             
@@ -463,7 +576,8 @@ def main():
             if action.lower() == 'q':
                 print("\n\nExiting...\n\n")
                 break
-
+            elif action.lower() == 'hc':
+                get_health(1)
             elif action.lower() == 'sw':
                 query = input("\nEnter search query: ")
                 api_url = f"{coder_url}/{coder_api_route}/workspaces?q={query}"
