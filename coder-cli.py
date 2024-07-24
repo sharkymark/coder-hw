@@ -104,6 +104,27 @@ def check_update():
     print("Error:", response.status_code)
     print("Error:", response.text)
 
+def get_ports(ws_id):
+
+
+
+  api_url = f"{coder_url}/{coder_api_route}/workspaces/{ws_id}/port-share"
+  response = requests.get(api_url, headers=headers)
+  if response.status_code == 200:
+    
+    shares = response.json()
+    ports = shares.get('shares', [])
+    if ports:
+        print("  Shared Ports:")
+        for port in ports:
+          agent = port.get('agent_name')
+          port_num = port.get('port')
+          share_level = port.get('share_level')
+          print(f"    - {port_num} ({share_level})") 
+  else:
+    print("Error:", response.status_code)
+    print("Error:", response.text)
+
 
 def check_api_connection():
 
@@ -276,8 +297,8 @@ def process_response(response, action):
         workspaces = workspace_data.get('workspaces', [])
         print(f"Total workspaces: {workspace_count}\n")
         for i, workspace in enumerate(response.json()['workspaces']):
-        #for workspace in workspaces:
           name = workspace.get('name')
+          ws_id = workspace.get('latest_build', {}).get('workspace_id')
           template_name = workspace.get('template_name')
           template_version = workspace.get('latest_build', {}).get('template_version_name')
           template_version_id = workspace.get('latest_build', {}).get('template_version_id')
@@ -289,9 +310,9 @@ def process_response(response, action):
           
 
           print(f"  Workspace #{i+1}")
-          print(f"  Name: {name}")
+          print(f"  Name (Id): {name} ({ws_id})")
           print(f"  Owner: {owner}")
-          print(f"  Template (version): {template_name} ({template_version})")
+          print(f"  Template (version | id): {template_name} ({template_version} | {template_version_id})")
           print(f"  Status: {status}") 
           print(f"  Last built: {last_built}")
           if status == 'running': 
@@ -344,6 +365,8 @@ def process_response(response, action):
                       if display_apps:
                         for app in display_apps:
                           print(f"      - {app}")
+
+            get_ports(ws_id)
 
             print()  # Add a new line after each workspace information
 
