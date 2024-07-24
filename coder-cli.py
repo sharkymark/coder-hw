@@ -216,7 +216,7 @@ def get_health(verbose):
         print(f"  Designated Encrypted Relay for Packets \"DERP\" servers healthy: {derp_health}")
         print(f"  # of DERP regions: {number_of_regions}")
         print(f"  UDP healthy: {udp}")
-        print(f"Websocket healthy: {websocket_healthy}")
+        print(f"  Websocket healthy: {websocket_healthy}")
         print(f"  Preferred DERP server: {preferred_derp}")
         print(f"  IP4: {ip4}")
         print(f"  IP6: {ip6}")
@@ -567,7 +567,7 @@ def main():
             'lu' to list users
             'ui' to list authenticated user info
             'ev' to list environment variables
-            'hc' to show health status
+            'hc' to do a health check and show details
             'st' to list deployment stats & release
             'q' to exit:
             
