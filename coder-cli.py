@@ -106,8 +106,6 @@ def check_update():
 
 def get_ports(ws_id):
 
-
-
   api_url = f"{coder_url}/{coder_api_route}/workspaces/{ws_id}/port-share"
   response = requests.get(api_url, headers=headers)
   if response.status_code == 200:
