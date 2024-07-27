@@ -255,6 +255,8 @@ def get_health(verbose):
 
 def check_api_connection():
 
+  global coder_org_id
+
   print("\nChecking API connection...\n")
   
   # print org ids and set coder_org_id
