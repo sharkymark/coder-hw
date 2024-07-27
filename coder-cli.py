@@ -6,7 +6,7 @@ import requests
 coder_url = os.environ['CODER_URL']
 coder_session_token = os.environ['CODER_SESSION_TOKEN']
 coder_api_route = os.environ['CODER_API_ROUTE']
-coder_org_id = os.environ['CODER_ORG_ID']
+coder_org_id = ""
 headers = {"Coder-Session-Token": coder_session_token}
 verbose = 0
 
@@ -23,7 +23,8 @@ def check_environment_variables():
   """
   This function checks if required environment variables are set and warns the user if not.
   """
-  required_vars = ["CODER_URL", "CODER_SESSION_TOKEN", "CODER_API_ROUTE", "CODER_ORG_ID"]
+  
+  required_vars = ["CODER_URL", "CODER_SESSION_TOKEN", "CODER_API_ROUTE"]
   missing_vars = [var for var in required_vars if not os.getenv(var)]
   if missing_vars:
     error_message = "\nERROR: The following environment variables are not set:\n\n"
@@ -39,6 +40,24 @@ def mask_token(token):
     """Masks the middle characters of a token, revealing first 4 and last 4."""
     mask_length = len(token) - 8  # Calculate mask length based on desired reveal
     return f"{token[:4]}{'*' * mask_length}{token[-4:]}"
+
+def get_org_id():
+  """
+  This function retrieves the organization ID from the Coder API.
+  """
+  api_url = f"{coder_url}/{coder_api_route}/users/me"
+  response = requests.get(api_url, headers=headers)
+  if response.status_code == 200:
+    user = response.json()
+    org_ids_formatted = format_org_ids(user.get('organization_ids', []))
+    first_org_id = user.get('organization_ids', [None])[0]
+    print(f"Organization Id in session: {first_org_id}")
+    print(f"All Organization Id(s) for user: {org_ids_formatted}")
+    return first_org_id
+  else:
+    print("Error:", response.status_code)
+    print("Error:", response.text)
+    return None
 
 def format_roles(roles):
   """
@@ -238,6 +257,10 @@ def check_api_connection():
 
   print("\nChecking API connection...\n")
   
+  # print org ids and set coder_org_id
+  coder_org_id = get_org_id()
+
+
   # get release
   api_url = f"{coder_url}/{coder_api_route}/buildinfo"
   response = requests.get(api_url, headers=headers)
