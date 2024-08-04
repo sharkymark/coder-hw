@@ -18,6 +18,7 @@ def print_environment_variables():
   print(f"CODER_API_ROUTE: {coder_api_route}")
   print(f"CODER_ORG_ID: {coder_org_id}")
   print("\n")
+  override_values()
 
 def check_environment_variables():
   """
@@ -35,6 +36,31 @@ def check_environment_variables():
     print_environment_variables()
     sys.exit(1)
 
+def override_values():
+    global coder_url, coder_session_token, coder_api_route, headers
+
+    print("\nOverride existing values? (y/n) ", end='')
+    response = input().lower()
+
+    if response == 'y':
+        print(f"Enter new value for CODER_URL (press Enter to keep existing value: {coder_url}): ", end='')
+        new_coder_url = input()
+        if new_coder_url:
+            coder_url = new_coder_url
+
+        print(f"Enter new value for CODER_SESSION_TOKEN (press Enter to keep existing value: {coder_session_token}): ", end='')
+        new_coder_session_token = input()
+        if new_coder_session_token:
+            coder_session_token = new_coder_session_token
+            headers = {"Coder-Session-Token": coder_session_token}
+
+
+        print(f"Enter new value for CODER_API_ROUTE (press Enter to keep existing value: {coder_api_route}): ", end='')
+        new_coder_api_route = input()
+        if new_coder_api_route:
+            coder_api_route = new_coder_api_route
+
+    check_api_connection()
 
 def mask_token(token):
     """Masks the middle characters of a token, revealing first 4 and last 4."""
@@ -46,6 +72,15 @@ def get_org_id():
   This function retrieves the organization ID from the Coder API.
   """
   api_url = f"{coder_url}/{coder_api_route}/users/me"
+
+  """
+   for debugging
+  print(f"API URL: {api_url}")
+  print(f"Coder API Route: {coder_api_route}")
+  print(f"Coder Session  Token: {coder_session_token}")
+  print(f"Headers: {headers}")
+  """
+  
   response = requests.get(api_url, headers=headers)
   if response.status_code == 200:
     user = response.json()
@@ -591,7 +626,7 @@ def main():
             'sw' to search workspaces
             'lu' to list users
             'ui' to list authenticated user info
-            'ev' to list environment variables
+            'ev' to list or inline change environment variables
             'hc' to do a health check and show details
             'st' to list deployment stats & release
             'q' to exit:
