@@ -18,7 +18,12 @@ def print_environment_variables():
   print(f"CODER_API_ROUTE: {coder_api_route}")
   print(f"CODER_ORG_ID: {coder_org_id}")
   print("\n")
-  override_values()
+
+  print("\nOverride/correct existing environment variable values? e.g., CODER_URL, CODER_SESSION_TOKEN, CODER_API_ROUTE (y/n) ", end='')
+  response = input().lower()
+
+  if response == 'y':
+    override_values()
 
 def check_environment_variables():
   """
@@ -31,34 +36,38 @@ def check_environment_variables():
     error_message = "\nERROR: The following environment variables are not set:\n\n"
     for var in missing_vars:
       error_message += f"  - {var}\n"  # Indented with two spaces for each missing variable
-    error_message += "\nPlease set these environment variables before running this program.\n"
     print(error_message)
-    print_environment_variables()
-    sys.exit(1)
+    
+    response = input("Do you want to (1) exit and update your environment variables or (2) manually enter values now? (1/2): ")
+
+    if response == '1':
+        print("Exiting program.")
+        sys.exit(1)
+    elif response == '2':
+        override_values()
+    else:
+        print("Invalid choice. Exiting program.")
+        sys.exit(1)
 
 def override_values():
     global coder_url, coder_session_token, coder_api_route, headers
 
-    print("\nOverride existing values? (y/n) ", end='')
-    response = input().lower()
+    print(f"\nEnter new value for CODER_URL (press Enter to keep existing value: {coder_url}): ", end='')
+    new_coder_url = input()
+    if new_coder_url:
+        coder_url = new_coder_url
 
-    if response == 'y':
-        print(f"Enter new value for CODER_URL (press Enter to keep existing value: {coder_url}): ", end='')
-        new_coder_url = input()
-        if new_coder_url:
-            coder_url = new_coder_url
-
-        print(f"Enter new value for CODER_SESSION_TOKEN (press Enter to keep existing value: {coder_session_token}): ", end='')
-        new_coder_session_token = input()
-        if new_coder_session_token:
-            coder_session_token = new_coder_session_token
-            headers = {"Coder-Session-Token": coder_session_token}
+    print(f"Enter new value for CODER_SESSION_TOKEN (press Enter to keep existing value: {coder_session_token}): ", end='')
+    new_coder_session_token = input()
+    if new_coder_session_token:
+        coder_session_token = new_coder_session_token
+        headers = {"Coder-Session-Token": coder_session_token}
 
 
-        print(f"Enter new value for CODER_API_ROUTE (press Enter to keep existing value: {coder_api_route}): ", end='')
-        new_coder_api_route = input()
-        if new_coder_api_route:
-            coder_api_route = new_coder_api_route
+    print(f"Enter new value for CODER_API_ROUTE (press Enter to keep existing value: {coder_api_route}): ", end='')
+    new_coder_api_route = input()
+    if new_coder_api_route:
+        coder_api_route = new_coder_api_route
 
     check_api_connection()
 
