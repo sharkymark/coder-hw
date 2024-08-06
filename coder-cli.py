@@ -12,15 +12,15 @@ verbose = 0
 
 # Initialize deployment variables
 deployment1 = {
-    "coder_url": os.environ.get('CODER_URL_1').rstrip('/'),
+    "coder_url": os.environ.get('CODER_URL_1','').rstrip('/'),
     "coder_session_token": os.environ.get('CODER_SESSION_TOKEN_1')
 }
 deployment2 = {
-    "coder_url": os.environ.get('CODER_URL_2').rstrip('/'),
+    "coder_url": os.environ.get('CODER_URL_2','').rstrip('/'),
     "coder_session_token": os.environ.get('CODER_SESSION_TOKEN_2')
 }
 deployment3 = {
-    "coder_url": os.environ.get('CODER_URL_3').rstrip('/'),
+    "coder_url": os.environ.get('CODER_URL_3','').rstrip('/'),
     "coder_session_token": os.environ.get('CODER_SESSION_TOKEN_3')
 }
 
