@@ -3,27 +3,151 @@ import sys
 import json
 import requests
 
-coder_url = os.environ['CODER_URL']
-coder_session_token = os.environ['CODER_SESSION_TOKEN']
-coder_api_route = os.environ['CODER_API_ROUTE']
+# Hardcoded Coder API route
+coder_api_route = "api/v2"
+coder_url = ""
+coder_session_token = ""
 coder_org_id = ""
-headers = {"Coder-Session-Token": coder_session_token}
 verbose = 0
 
+# Initialize deployment variables
+deployment1 = {
+    "coder_url": os.environ.get('CODER_URL_1').rstrip('/'),
+    "coder_session_token": os.environ.get('CODER_SESSION_TOKEN_1')
+}
+deployment2 = {
+    "coder_url": os.environ.get('CODER_URL_2').rstrip('/'),
+    "coder_session_token": os.environ.get('CODER_SESSION_TOKEN_2')
+}
+deployment3 = {
+    "coder_url": os.environ.get('CODER_URL_3').rstrip('/'),
+    "coder_session_token": os.environ.get('CODER_SESSION_TOKEN_3')
+}
+
+# Set default deployment
+
+deployments = [deployment1, deployment2, deployment3]  # Add more deployments as needed
+
+# Find the first available deployment
+for deployment in deployments:
+    if deployment["coder_url"] and deployment["coder_session_token"]:
+        current_deployment = deployment
+        break
+
+
+def check_api_connection():
+
+  global coder_org_id
+
+  print("\nChecking API connection...\n")
+  
+  print(f"Current deployment: {coder_url}\n")
+
+  # print org ids and set coder_org_id
+  coder_org_id = get_org_id()
+
+
+  # get release
+  api_url = f"{coder_url}/{coder_api_route}/buildinfo"
+  response = requests.get(api_url, headers=headers)
+  if response.status_code == 200:
+    #print(response.text)
+    process_response(response, "re")
+  else:
+    print("Error:", response.status_code)
+    print("Error:", response.text)
+
+  # get update available?
+  check_update()
+  # get health status
+  get_health(0)
+
+  # get user count
+  api_url = f"{coder_url}/{coder_api_route}/users"
+  response = requests.get(api_url, headers=headers)
+  if response.status_code == 200:
+    process_response(response, "uc")
+  else:
+    print("Error:", response.status_code)
+    print("Error:", response.text)  
+
+  # get template count
+  api_url = f"{coder_url}/{coder_api_route}/organizations/{coder_org_id}/templates"
+  response = requests.get(api_url, headers=headers)
+  if response.status_code == 200:
+    process_response(response, "tc")
+  else:
+    print("Error:", response.status_code)
+    print("Error:", response.text)  
+
+  # get workspace count
+  api_url = f"{coder_url}/{coder_api_route}/workspaces"
+  response = requests.get(api_url, headers=headers)
+  if response.status_code == 200:
+    process_response(response, "wc")
+  else:
+    print("Error:", response.status_code)
+    print("Error:", response.text)  
+
+def set_current_deployment(chosen_deployment):
+  global current_deployment, coder_url, coder_session_token, headers
+  current_deployment = chosen_deployment
+  coder_url = current_deployment["coder_url"]
+  coder_session_token = current_deployment["coder_session_token"]
+  headers = {"Coder-Session-Token": current_deployment["coder_session_token"]}
+  check_api_connection()
+
+def switch_deployment():
+
+    deployments = [deployment1, deployment2, deployment3]  
+
+    if sum(1 for deployment in deployments if deployment["coder_url"] and deployment["coder_session_token"]) > 1:
+        print("Select a Coder deployment: \n")
+        for i, deployment in enumerate(deployments):
+            if deployment["coder_url"] and deployment["coder_session_token"]:
+                print(f"{i+1}. {deployment['coder_url']}")
+        choice = input("\nEnter: ")
+        chosen_deployment = deployments[int(choice) - 1]
+        set_current_deployment(chosen_deployment)  
+
 def print_environment_variables():
-  print("\nListing environment variables...\n\n")
-  print(f"CODER_URL: {coder_url}")
-  masked_token = mask_token(coder_session_token)
-  print(f"CODER_SESSION_TOKEN: {masked_token}")
-  print(f"CODER_API_ROUTE: {coder_api_route}")
-  print(f"CODER_ORG_ID: {coder_org_id}")
-  print("\n")
+    print("\nListing environment variables...\n\n")
+    print(f"CODER_URL: {current_deployment['coder_url']}")
+    masked_token = mask_token(current_deployment["coder_session_token"])
+    print(f"CODER_SESSION_TOKEN: {masked_token}")
+    print(f"CODER_API_ROUTE: {coder_api_route}")
+    print(f"CODER_ORG_ID: {coder_org_id}")
+    print("\n")
 
-  print("\nOverride/correct existing environment variable values? e.g., CODER_URL, CODER_SESSION_TOKEN, CODER_API_ROUTE (y/n) ", end='')
-  response = input().lower()
+    print("\nOverride/correct existing environment variable values? e.g., CODER_URL, CODER_SESSION_TOKEN (y/n) ", end='')
+    response = input().lower()
 
-  if response == 'y':
-    override_values()
+    if response == 'y':
+        override_values()
+
+def switch_deployment():
+    global current_deployment, headers
+
+    deployments = [deployment1, deployment2, deployment3] 
+
+    print("Select deployment to switch to: \n")
+    for i, deployment in enumerate(deployments):
+        if deployment["coder_url"] and deployment["coder_session_token"]:
+            print(f"{i+1}. {deployment['coder_url']}")
+
+    deployment_choice = input(f"\nEnter: ")
+
+    if deployment_choice == '1':
+        set_current_deployment(deployment1)
+    elif deployment_choice == '2':
+        set_current_deployment(deployment2)
+    elif deployment_choice == '3':
+        set_current_deployment(deployment3)
+    else:
+        print("Invalid choice. Returning to main menu.")
+        return
+
+    print("Deployment switched successfully.")
 
 def check_environment_variables():
   """
@@ -38,7 +162,7 @@ def check_environment_variables():
       error_message += f"  - {var}\n"  # Indented with two spaces for each missing variable
     print(error_message)
     
-    response = input("Do you want to (1) exit and update your environment variables or (2) manually enter values now? (1/2): ")
+    response = input("Do you want to (1) exit and update your environment variables or (2) manually enter values now? (Note: manually-entered values will not perist when program closes): ")
 
     if response == '1':
         print("Exiting program.")
@@ -50,24 +174,38 @@ def check_environment_variables():
         sys.exit(1)
 
 def override_values():
-    global coder_url, coder_session_token, coder_api_route, headers
+    global current_deployment, headers
 
-    print(f"\nEnter new value for CODER_URL (press Enter to keep existing value: {coder_url}): ", end='')
+    deployments = [deployment1, deployment2, deployment3] 
+
+    print("Select deployment: (Note: These will not persist when program exits.) \n")
+    for i, deployment in enumerate(deployments):
+        if deployment["coder_url"] and deployment["coder_session_token"]:
+            print(f"{i+1}. {deployment['coder_url']}")
+
+    deployment_choice = input(f"\nEnter: ")
+
+    if deployment_choice == '1':
+        deployment = deployment1
+    elif deployment_choice == '2':
+        deployment = deployment2
+    elif deployment_choice == '3':
+        deployment = deployment3
+    else:
+        print("Invalid choice. Returning to main menu.")
+
+    print(f"\nEnter new value for CODER_URL (press Enter to keep existing value: {deployment['coder_url']}): ", end='')
     new_coder_url = input()
     if new_coder_url:
+        deployment["coder_url"] = new_coder_url
         coder_url = new_coder_url
 
-    print(f"Enter new value for CODER_SESSION_TOKEN (press Enter to keep existing value: {coder_session_token}): ", end='')
+    print(f"Enter new value for CODER_SESSION_TOKEN (press Enter to keep existing value: {deployment['coder_session_token']}): ", end='')
     new_coder_session_token = input()
     if new_coder_session_token:
+        deployment["coder_session_token"] = new_coder_session_token
         coder_session_token = new_coder_session_token
-        headers = {"Coder-Session-Token": coder_session_token}
-
-
-    print(f"Enter new value for CODER_API_ROUTE (press Enter to keep existing value: {coder_api_route}): ", end='')
-    new_coder_api_route = input()
-    if new_coder_api_route:
-        coder_api_route = new_coder_api_route
+        headers = {"Coder-Session-Token": deployment["coder_session_token"]}
 
     check_api_connection()
 
@@ -76,32 +214,7 @@ def mask_token(token):
     mask_length = len(token) - 8  # Calculate mask length based on desired reveal
     return f"{token[:4]}{'*' * mask_length}{token[-4:]}"
 
-def get_org_id():
-  """
-  This function retrieves the organization ID from the Coder API.
-  """
-  api_url = f"{coder_url}/{coder_api_route}/users/me"
 
-  """
-   for debugging
-  print(f"API URL: {api_url}")
-  print(f"Coder API Route: {coder_api_route}")
-  print(f"Coder Session  Token: {coder_session_token}")
-  print(f"Headers: {headers}")
-  """
-  
-  response = requests.get(api_url, headers=headers)
-  if response.status_code == 200:
-    user = response.json()
-    org_ids_formatted = format_org_ids(user.get('organization_ids', []))
-    first_org_id = user.get('organization_ids', [None])[0]
-    print(f"Organization Id in session: {first_org_id}")
-    print(f"All Organization Id(s) for user: {org_ids_formatted}")
-    return first_org_id
-  else:
-    print("Error:", response.status_code)
-    print("Error:", response.text)
-    return None
 
 def format_roles(roles):
   """
@@ -121,6 +234,36 @@ def format_org_ids(org_ids):
   if not org_ids:
     return "None"
   return ", ".join(org_ids)
+
+def get_org_id():
+  """
+  This function retrieves the organization ID from the Coder API.
+  """
+  api_url = f"{coder_url}/{coder_api_route}/users/me"
+
+  """
+  print(f"API URL: {api_url}")
+  print(f"Coder API Route: {coder_api_route}")
+  print(f"Coder Session  Token: {coder_session_token}")
+  print(f"Headers: {headers}")
+  """  
+  
+  response = requests.get(api_url, headers=headers)
+  if response.status_code == 200:
+    try:
+      user = response.json()
+      org_ids_formatted = format_org_ids(user.get('organization_ids', []))
+      first_org_id = user.get('organization_ids', [None])[0]
+      print(f"Organization Id in session: {first_org_id}")
+      print(f"All Organization Id(s) for user: {org_ids_formatted}")
+      return first_org_id
+    except json.JSONDecodeError as e:
+      print(f"Error decoding JSON: {e}")
+      return None
+  else:
+    print("Error:", response.status_code)
+    print("Error:", response.text)
+    return None
 
 def format_user_info(user):
   """
@@ -297,57 +440,7 @@ def get_health(verbose):
     print("Error:", response.status_code)
     print("Error:", response.text)
 
-def check_api_connection():
 
-  global coder_org_id
-
-  print("\nChecking API connection...\n")
-  
-  # print org ids and set coder_org_id
-  coder_org_id = get_org_id()
-
-
-  # get release
-  api_url = f"{coder_url}/{coder_api_route}/buildinfo"
-  response = requests.get(api_url, headers=headers)
-  if response.status_code == 200:
-    #print(response.text)
-    process_response(response, "re")
-  else:
-    print("Error:", response.status_code)
-    print("Error:", response.text)
-
-  # get update available?
-  check_update()
-  # get health status
-  get_health(0)
-
-  # get user count
-  api_url = f"{coder_url}/{coder_api_route}/users"
-  response = requests.get(api_url, headers=headers)
-  if response.status_code == 200:
-    process_response(response, "uc")
-  else:
-    print("Error:", response.status_code)
-    print("Error:", response.text)  
-
-  # get template count
-  api_url = f"{coder_url}/{coder_api_route}/organizations/{coder_org_id}/templates"
-  response = requests.get(api_url, headers=headers)
-  if response.status_code == 200:
-    process_response(response, "tc")
-  else:
-    print("Error:", response.status_code)
-    print("Error:", response.text)  
-
-  # get workspace count
-  api_url = f"{coder_url}/{coder_api_route}/workspaces"
-  response = requests.get(api_url, headers=headers)
-  if response.status_code == 200:
-    process_response(response, "wc")
-  else:
-    print("Error:", response.status_code)
-    print("Error:", response.text)  
 
 def update_workspace_state(transition, chosen_workspace):
   """
@@ -617,8 +710,10 @@ def process_response(response, action):
 
 def main():
 
+    # Set the current deployment
+    set_current_deployment(current_deployment)
+
     check_environment_variables()
-    check_api_connection()
 
     while True:
         try:
@@ -635,6 +730,7 @@ def main():
             'sw' to search workspaces
             'lu' to list users
             'ui' to list authenticated user info
+            'sd' to switch to another Coder deployment
             'ev' to list or inline change environment variables
             'hc' to do a health check and show details
             'st' to list deployment stats & release
@@ -645,6 +741,8 @@ def main():
             if action.lower() == 'q':
                 print("\n\nExiting...\n\n")
                 break
+            elif action.lower() == 'sd':
+                switch_deployment()
             elif action.lower() == 'hc':
                 get_health(1)
             elif action.lower() == 'sw':

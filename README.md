@@ -16,9 +16,8 @@ Credential is a session token. It is read as environment variable along with the
 
 ```sh
 # set environment variables
-export CODER_URL=""
-export CODER_SESSION_TOKEN=""
-export CODER_API_ROUTE="api/v2"
+export CODER_URL_1=""
+export CODER_SESSION_TOKEN_1=""
 ```
 
 Create a Coder Session Token either:
@@ -29,7 +28,21 @@ Create a Coder Session Token either:
 > If using the dev container, you cannot use localhost but instead the tunnel proxy URL or our host machine URL
 > where Coder is deployed e.g., `https://*************.pit-1.try.coder.app`
 
-At startup, the app gets Coder deployment's Organization Id with `http://your-access-url/api/v2/users/me` which you can also see from a browser.  `CODER_ORG_ID` is no longer required as an environment variable.
+At startup, the app gets Coder deployment's Organization Id with `http://your-access-url/api/v2/users/me` which you can also see from a browser.  `CODER_ORG_ID` is no longer required as an environment variable since the app retrieves it with an initial API call.
+
+## Multiple Coder deployment support
+
+The app allows up to 3 Coder deployments. When the app starts, the first one entered is loaded. There is an action in the CLI to switch to another deployment if environment variables have been entered.
+
+```sh
+# set environment variables
+export CODER_URL_1=""
+export CODER_SESSION_TOKEN_1=""
+export CODER_URL_2=""
+export CODER_SESSION_TOKEN_2=""
+export CODER_URL_3=""
+export CODER_SESSION_TOKEN_3=""
+```
 
 ## Run the app
 
@@ -58,7 +71,8 @@ The app runs as a while loop prompting the user for actions like:
 1. search workspaces with a filter e.g., `owner:me` or `flask`
 1. list all users
 1. show authenticated user information
-1. list environment variable values with session token partially masked
+1. list or override environment variable values
+1. Switch Coder deployments
 1. list deployment build information
 1. list health details of the Coder deployment
 1. start or stop a workspace from a list
