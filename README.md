@@ -10,6 +10,8 @@ This example uses Python and is a command line application
 
 Coder has a REST API where a user's session token is provided in a header to authenticate the app to the Coder deployment 
 
+![Main menu screenshot](./docs/images/coder-hw.png)
+
 ## The app 
 
 The app runs as a while loop prompting the user for actions like:
@@ -26,8 +28,6 @@ The app runs as a while loop prompting the user for actions like:
 1. quit the app
 
 When the app starts, it checks that environment variables have been entered and does test API calls to retrieve Coder release, # of users, templates and workspaces.
-
-![Main menu screenshot](./docs/images/coder-hw.png)
 
 ## Authentication
 
