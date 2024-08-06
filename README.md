@@ -10,6 +10,23 @@ This example uses Python and is a command line application
 
 Coder has a REST API where a user's session token is provided in a header to authenticate the app to the Coder deployment 
 
+## The app 
+
+The app runs as a while loop prompting the user for actions like:
+1. list templates
+1. list workspaces
+1. search workspaces with a filter e.g., `owner:me` or `flask`
+1. list all users
+1. show authenticated user information
+1. list or override environment variable values
+1. Switch Coder deployments
+1. list deployment build information
+1. list health details of the Coder deployment
+1. start or stop a workspace from a list
+1. quit the app
+
+When the app starts, it checks that environment variables have been entered and does test API calls to retrieve Coder release, # of users, templates and workspaces.
+
 ## Authentication
 
 Credential is a session token. It is read as environment variable along with the Coder Access URL, API Route and Organization Id which you place in `.zshrc` or `.bashrc` of the host computer running the Docker daemon.
@@ -62,23 +79,6 @@ python3 coder-cli.py
 ```
 
 Alternatively, see the dev container approach below which autostarts the app.
-
-## The app 
-
-The app runs as a while loop prompting the user for actions like:
-1. list templates
-1. list workspaces
-1. search workspaces with a filter e.g., `owner:me` or `flask`
-1. list all users
-1. show authenticated user information
-1. list or override environment variable values
-1. Switch Coder deployments
-1. list deployment build information
-1. list health details of the Coder deployment
-1. start or stop a workspace from a list
-1. quit the app
-
-When the app starts, it checks that environment variables have been entered and does test API calls to retrieve Coder release, # of users, templates and workspaces.
 
 ## Dev Container
 
