@@ -27,6 +27,8 @@ The app runs as a while loop prompting the user for actions like:
 
 When the app starts, it checks that environment variables have been entered and does test API calls to retrieve Coder release, # of users, templates and workspaces.
 
+![Main menu screenshot](./docs/images/coder-hw.png)
+
 ## Authentication
 
 Credential is a session token. It is read as environment variable along with the Coder Access URL, API Route and Organization Id which you place in `.zshrc` or `.bashrc` of the host computer running the Docker daemon.
@@ -100,6 +102,7 @@ This approach frees you up from having a specific Python version and module on y
 ## License
 
 This project is licensed under the [MIT License](LICENSE)
+
 ## Contributing
 
 ### Disclaimer: Unmaintained and Untested Code
