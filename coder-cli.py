@@ -97,18 +97,7 @@ def set_current_deployment(chosen_deployment):
   headers = {"Coder-Session-Token": current_deployment["coder_session_token"]}
   check_api_connection()
 
-def switch_deployment():
 
-    deployments = [deployment1, deployment2, deployment3]  
-
-    if sum(1 for deployment in deployments if deployment["coder_url"] and deployment["coder_session_token"]) > 1:
-        print("Select a Coder deployment: \n")
-        for i, deployment in enumerate(deployments):
-            if deployment["coder_url"] and deployment["coder_session_token"]:
-                print(f"{i+1}. {deployment['coder_url']}")
-        choice = input("\nEnter: ")
-        chosen_deployment = deployments[int(choice) - 1]
-        set_current_deployment(chosen_deployment)  
 
 def print_environment_variables():
     print("\nListing environment variables...\n\n")
@@ -127,6 +116,8 @@ def print_environment_variables():
 
 def switch_deployment():
     global current_deployment, headers
+
+    print(f"\n\nCurrent deployment: {current_deployment['coder_url']}\n")
 
     deployments = [deployment1, deployment2, deployment3] 
 
