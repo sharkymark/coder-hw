@@ -145,7 +145,7 @@ def check_environment_variables():
   This function checks if required environment variables are set and warns the user if not.
   """
   
-  required_vars = ["CODER_URL", "CODER_SESSION_TOKEN", "CODER_API_ROUTE"]
+  required_vars = ["CODER_URL_1", "CODER_SESSION_TOKEN_1"]
   missing_vars = [var for var in required_vars if not os.getenv(var)]
   if missing_vars:
     error_message = "\nERROR: The following environment variables are not set:\n\n"
