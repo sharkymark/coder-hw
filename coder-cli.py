@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import lunar_interceptor
 import requests
 
 # Hardcoded Coder API route
@@ -80,11 +81,20 @@ def check_api_connection():
     print("Error:", response.status_code)
     print("Error:", response.text)  
 
-  # get workspace count
+  # get running workspace count
   api_url = f"{coder_url}/{coder_api_route}/workspaces"
   response = requests.get(api_url, headers=headers)
   if response.status_code == 200:
     process_response(response, "wc")
+  else:
+    print("Error:", response.status_code)
+    print("Error:", response.text)  
+
+  # get running workspace count
+  api_url = f"{coder_url}/{coder_api_route}/workspaces?q=status%3Arunning"
+  response = requests.get(api_url, headers=headers)
+  if response.status_code == 200:
+    process_response(response, "rwc")
   else:
     print("Error:", response.status_code)
     print("Error:", response.text)  
@@ -508,6 +518,11 @@ def process_response(response, action):
           workspace_data = response.json()
           workspace_count = workspace_data.get('count')
           print(f"# of workspaces: {workspace_count}")          
+
+      elif action.lower() == 'rwc':
+          workspace_data = response.json()
+          workspace_count = workspace_data.get('count')
+          print(f"# of running workspaces: {workspace_count}")  
 
       elif action.lower() == 'ui':
           user_data = response.json()
