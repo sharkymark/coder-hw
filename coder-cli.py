@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-import lunar_interceptor
+# import lunar_interceptor
 import requests
 
 # Hardcoded Coder API route
