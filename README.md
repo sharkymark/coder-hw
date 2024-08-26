@@ -25,6 +25,7 @@ The app runs as a while loop prompting the user for actions like:
 1. list deployment build information
 1. list health details of the Coder deployment
 1. start or stop a workspace from a list
+1. present clickable URLs for workspaces and templates to open Coder in a browser
 1. quit the app
 
 When the app starts, it checks that environment variables have been entered and does test API calls to retrieve Coder release, # of users, templates and workspaces.
@@ -80,13 +81,26 @@ export CODER_SESSION_TOKEN_3=""
 python3 coder-cli.py
 ```
 
-Alternatively, see the dev container approach below which autostarts the app.
+### from dev container
+
+The dev container automatically starts the app with `"postCreateCommand": "python3 coder-cli.py"`
 
 ## Dev Container
 
 Notice the `Dockerfile` and `devcontainer.json` which uses a slim Python container image in the Dockerfile, and passes the Coder authentication environment variables into the dev container.
 
 This approach frees you up from having a specific Python version and module on your local machine e.g., Mac and let the dev container set all of this up. You do still need to set the environment variables locally which is more secure and better than putting into the repo with .gitignore. ☠️
+
+
+## Packages
+
+If not using a dev container, you will to 'pip install' the following packages:
+
+```sh
+requests
+python-dateutil
+pytz
+```
 
 ## Resources
 

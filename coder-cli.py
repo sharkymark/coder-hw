@@ -3,12 +3,16 @@ import sys
 import json
 # import lunar_interceptor
 import requests
+import pytz
+from datetime import datetime
+from dateutil import parser
 
 # Hardcoded Coder API route
 coder_api_route = "api/v2"
 coder_url = ""
 coder_session_token = ""
 coder_org_id = ""
+current_deployment = {}
 verbose = 0
 
 # Initialize deployment variables
@@ -470,6 +474,37 @@ def update_workspace_state(transition, chosen_workspace):
       print(f"Error updating workspace state: {e}")
       return False
 
+def format_timestamp_with_offset(timestamp_str):
+    # Parse the timestamp with the offset
+    timestamp = parser.isoparse(timestamp_str)
+
+    # Initialize the timezone name
+    timezone_name = None
+
+    # List of known time zones to check against
+    known_timezones = [
+        'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 
+        'Europe/London', 'Europe/Paris', 'Asia/Tokyo', 'Australia/Sydney'
+    ]
+
+    # Find the time zone name that matches the offset
+    for tz in known_timezones:
+        try:
+            tzinfo = pytz.timezone(tz)
+            timestamp_in_tz = timestamp.astimezone(tzinfo)
+            if timestamp_in_tz.utcoffset() == timestamp.utcoffset():
+                timezone_name = tz
+                break
+        except Exception:
+            continue
+
+    # Format the datetime to CCYY-MM-DD HH:MM TimezoneName
+    if timezone_name:
+        formatted_datetime = timestamp_in_tz.strftime(f'%Y-%m-%d %H:%M {timezone_name}')
+    else:
+        formatted_datetime = timestamp.strftime('%Y-%m-%d %H:%M UTC')
+
+    return formatted_datetime
 
 def process_response(response, action):
   """
@@ -550,6 +585,7 @@ def process_response(response, action):
         # Iterate through templates and extract desired data
         template_data = response.json()
         template_count = len(template_data)
+
         print(f"\n# of templates: {template_count}\n")
 
         for template in data:
@@ -560,14 +596,19 @@ def process_response(response, action):
           active_users = template.get('active_user_count')
           created_by = template.get('created_by_name')
           deprecated = template.get('deprecated')
+          template_url = current_deployment['coder_url'] + "/templates/" + template.get('name')
 
           # ... Extract other data points
           print(f"\nDisplay(name): {name}")
-          print(f"Description: {description}")
-          print(f"Created by: {created_by} at: {created_at} updated at: {updated_at}")
+          if description:
+            print(f"  Description: {description}")
+          print(f"  URL: {template_url}")
+          print(f"  Created by: {created_by}")
+          print(f"  Created at: {format_timestamp_with_offset(created_at)}")
+          print(f"  Updated at: {format_timestamp_with_offset(updated_at)}")
           if deprecated:
-            print(f"**deprecated**")
-          print(f"Active users: {active_users}")
+            print(f"  **deprecated**")
+          print(f"  Active users: {active_users}")
 
       elif action.lower() == 'lw':
         workspace_data = response.json()
@@ -585,14 +626,16 @@ def process_response(response, action):
           outdated = workspace.get('outdated', False)
           last_built = workspace.get('latest_build', {}).get('created_at')
           owner = workspace.get('latest_build', {}).get('workspace_owner_name')
-          
+
+          ws_url = current_deployment['coder_url'] + "/@" + owner + "/" + name
 
           print(f"  Workspace #{i+1}")
           print(f"  Name (Id): {name} ({ws_id})")
           print(f"  Owner: {owner}")
+          print(f"  URL: {ws_url}")
           print(f"  Template (version | id): {template_name} ({template_version} | {template_version_id})")
           print(f"  Status: {status}") 
-          print(f"  Last built: {last_built}")
+          print(f"  Last built: {format_timestamp_with_offset(last_built)}")
           if status == 'running': 
             print(f"  Healthy: {health}")
 
