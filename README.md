@@ -94,7 +94,7 @@ This approach frees you up from having a specific Python version and module on y
 
 ## Packages
 
-If not using a dev container, you will to 'pip install' the following packages:
+If not using a dev container, you will to `pip install` the following packages:
 
 ```sh
 requests
