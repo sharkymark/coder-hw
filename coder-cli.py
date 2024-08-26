@@ -278,8 +278,8 @@ def format_user_info(user):
   email = user.get('email')
   roles_formatted = format_roles(user.get('roles', []))
   org_ids_formatted = format_org_ids(user.get('organization_ids', []))
-  last_seen = user.get('last_seen_at')
-  created_at = user.get('created_at')
+  last_seen = format_timestamp_with_offset(user.get('last_seen_at'))
+  created_at = format_timestamp_with_offset(user.get('created_at'))
 
   return f"Username: {username}\nEmail: {email}\nRoles: {roles_formatted}\nOrganization Id(s): {org_ids_formatted}\nLast Seen: {last_seen}\nCreated At: {created_at}"
 
