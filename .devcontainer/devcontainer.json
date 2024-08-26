@@ -24,7 +24,7 @@
         }  
       }
     },
-    "postCreateCommand": "python3 coder-cli.py"
+    "postStartCommand": "python3 coder-cli.py"
     }
 
   
