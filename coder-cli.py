@@ -335,6 +335,69 @@ def get_ports(ws_id):
     print("Error:", response.status_code)
     print("Error:", response.text)
 
+def get_agent_metadata(agent_id):
+    
+    api_url = f"{coder_url}/{coder_api_route}/workspaceagents/{agent_id}/watch-metadata"
+
+    try:
+        response = requests.get(api_url, headers=headers, stream=True)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        
+        for line in response.iter_lines():
+            if line:  # Check if line is not empty
+                line = line.decode('utf-8')
+                if line.startswith("data:"):
+                    json_data = line[5:]  # Remove "data:" prefix
+                    try:
+                        response_json = json.loads(json_data)
+                        #print("Raw Response:", response_json)
+                        
+                        # Process the JSON response
+                        if isinstance(response_json, list):
+                            data = response_json
+                        else:
+                            print("Unexpected response format:")
+                            print(response_json)
+                            return
+                        
+                        #print("Data:", data)
+                        if data:
+                            print("    Agent metadata:")
+                            for meta in data:
+                                metadata_description = meta.get('description', {}).get('display_name')
+                                metadata_value = meta.get('result', {}).get('value')
+                                print(f"      - {metadata_description}: {metadata_value}", end="")
+                    except json.JSONDecodeError as e:
+                        print("Error parsing JSON:", e)
+                    break  # Only process the first event
+                
+    except requests.RequestException as e:
+        print("Request error:", e)
+
+
+def get_agents(workspace_id):
+    #print(f"    Workspace Id: {workspace_id}")
+
+    # get the agent id
+
+    api_url = f"{coder_url}/{coder_api_route}/workspaces/{workspace_id}"
+    response = requests.get(api_url, headers=headers)
+    if response.status_code == 200:
+      workspace = response.json()
+      resources = workspace.get('latest_build').get('resources', [])
+      if resources:
+        for resource in resources:
+          agents = resource.get('agents', [])
+          for agent in agents:
+            agent_id = agent.get('id')
+            print(f"    Agent Id: {agent_id}")
+
+            # get the agent metadata
+            get_agent_metadata(agent_id)
+    else:
+      print("Error:", response.status_code)
+      print("Error:", response.text)
+
 def extract_ipv4(address_string):
   """
   This function extracts the IP address from a string and returns it.
@@ -635,6 +698,8 @@ def process_response(response, action):
           print(f"  URL: {ws_url}")
           print(f"  Template (version | id): {template_name} ({template_version} | {template_version_id})")
           print(f"  Status: {status}") 
+          if status == 'running':
+             get_agents(ws_id)
           print(f"  Last built: {format_timestamp_with_offset(last_built)}")
           if status == 'running': 
             print(f"  Healthy: {health}")
