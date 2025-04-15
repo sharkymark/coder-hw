@@ -10,7 +10,10 @@
       "CODER_URL_2": "${localEnv:CODER_URL_2}",
       "CODER_SESSION_TOKEN_2": "${localEnv:CODER_SESSION_TOKEN_2}",
       "CODER_URL_3": "${localEnv:CODER_URL_3}",
-      "CODER_SESSION_TOKEN_3": "${localEnv:CODER_SESSION_TOKEN_3}"
+      "CODER_SESSION_TOKEN_3": "${localEnv:CODER_SESSION_TOKEN_3}",
+      "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}",
+      "GITHUB_USER_NAME": "${localEnv:GITHUB_USER_NAME}",   
+      "GITHUB_USER_EMAIL": "${localEnv:GITHUB_USER_EMAIL}" 
     },
     "customizations": {
       "vscode": {
