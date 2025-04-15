@@ -1,7 +1,7 @@
 {
     "name": "Coder Simple CLI",
     "build": {
-      "dockerfile": "../Dockerfile",
+      "dockerfile": "Dockerfile",
       "context": ".."
     },
     "containerEnv": {
@@ -16,15 +16,19 @@
       "vscode": {
         "extensions": [
           "ms-python.python",
+          "ms-python.pylance",
+          "ms-python.debugpy",
           "GitHub.copilot",
-          "ms-python.pylance"
+          "saoudrizwan.claude-dev",
+          "continue.continue"
+          
         ],
         "settings": { 
           "terminal.integrated.shell.linux": "/bin/bash"
         }  
       }
     },
-    "postStartCommand": "python3 coder-cli.py"
+    "postStartCommand": "git config --global --add safe.directory $PWD && git config --global user.name \"${GITHUB_USER_NAME}\" && git config --global user.email \"${GITHUB_USER_EMAIL}\" && git config --global url.\"https://${GITHUB_TOKEN}@github.com/\".insteadOf \"https://github.com/\" && python3 coder-cli.py"
     }
 
   
